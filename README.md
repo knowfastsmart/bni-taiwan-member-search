@@ -1,36 +1,33 @@
-# BNI 台灣會員搜尋
+# BNI 全球人脈搜尋
 
 網站：https://knowfastsmart.github.io/bni-taiwan-member-search/
-
 專業別搜尋：https://knowfastsmart.github.io/bni-taiwan-member-search/?mode=profession
 
-儲存庫：https://github.com/knowfastsmart/bni-taiwan-member-search
+繁體中文介面，支援國家／地區、區域、分會、產業及聯絡方式篩選。全部資料搜尋比對所有原始欄位；獨立專業別搜尋只比對專業子分類與專業項目，另有確切專業選單。支援常用中英文專業同義詞。會員姓名、公司與介紹保留來源原文。
 
-9,426 筆會員資料，可供訪客用全部資料搜尋、獨立專業別搜尋、區域與分會篩選。
+搜尋結果每頁 500 筆，卡片及表格皆適用；完整會員詳情及 CSV 匯出保留來源 24 欄。這是使用者要求公開的整理工具，並非 BNI 官方網站。
 
-- `docs/`：可直接部署的網站與瀏覽器端資料索引。
-- `data/members.csv`：使用者提供的原始 24 欄會員資料。
-- `data/metadata.json`：資料來源、快照日期與欄位說明。
-- `update_data.py`：替換同格式 CSV 後重建網站資料。
+## 收錄範圍及資料更新
 
-初始資料快照為 2026/10/30。設定完成後，每週一台灣時間 06:20 由 GitHub Actions 自動更新並發布網站。未登入時收藏保存在訪客自己的瀏覽器；Google 登入後以 Firestore 同步個人收藏。網站與資料為使用者要求公開的版本；這不是 BNI 官方網站。
+來源：[gaskhuang/bni-crawler](https://github.com/gaskhuang/bni-crawler)，固定已檢查版本 `cc7c982457a1bf8406aeeb8b982df49c6224045b`。範圍是該 repo 列出的 44 個國家／地區入口，不宣稱涵蓋未公開資料或 repo 尚未支援的地區。`countries.json` 保留來源名稱並提供繁體中文顯示名稱；來源的 Antarctica 入口另標「來源標示」，避免自行變更來源國家名稱。
 
-本機開啟 `docs/index.html` 即可使用。更新資料執行 `python3 update_data.py /完整路徑/新資料.csv`，資料日期會一起更新；提交更新檔案後即可發布。
+- 預定每週一台灣時間 06:20 由 GitHub Actions 更新全部 44 個入口，實際啟動可能略有延遲；電腦與聊天不需保持開啟。
+- [Actions → Weekly BNI global refresh → Run workflow](https://github.com/knowfastsmart/bni-taiwan-member-search/actions/workflows/weekly-refresh.yml) 可立即更新。
+- 同時最多處理 4 個國家，每國同時最多 8 個請求；來源回應失敗會重試。
+- 各國獨立驗證。空資料、筆數下降逾 10%、區域／分會涵蓋下降逾 5%、主要欄位完整率下降逾 10% 或詳情取得失敗，會保留該國前次資料；其他成功國家仍可更新。
+- 網站「資料收錄範圍」列出各國實際筆數、日期與狀態。未取得可用資料的入口不會被算成已收錄國家。
+- GitHub 對長期無活動的公開儲存庫可能暫停排程，請從 Actions 查看或重新啟用。
 
-搜尋結果每頁顯示 500 位會員。全部搜尋會比對姓名、公司、專業與業務介紹等全部原始欄位；專業別搜尋只比對專業子分類及專業項目，也提供確切專業別選單。
+`docs/catalog.json` 是搜尋目錄。公開資料以不可變的內容雜湊 gzip 分檔，全文搜尋在 Web Worker 執行，會員完整欄位只在開啟詳情或匯出時載入。瀏覽器快取僅包含公開會員資料，個人收藏不會進入這些檔案。
 
+- `data/countries/<國家代碼>.json.gz`：各國 24 欄原始資料。
+- `data/global-metadata.json`：整體收錄與更新狀態。
+- `docs/catalog/<國家代碼>/`：壓縮搜尋索引與完整資料分檔。
+- `data/members.csv`、`docs/members.js`：保留台灣資料的原有相容輸出。
+- `global_pipeline.py`：全球抓取、驗證、分檔及發布。
+- `test_global.py`、`test_search_worker.cjs`：資料驗證、完整欄位搜尋、國家篩選、每頁 500 筆與匯出測試。
 
-## 每週自動更新
-
-來源：[gaskhuang/bni-crawler](https://github.com/gaskhuang/bni-crawler)，使用已檢查的非同步版本 `cc7c982457a1bf8406aeeb8b982df49c6224045b`。只抓台灣，併發數 8。上游日後有變更時，需要檢查後再更新固定版本。
-
-- 預定每週一 06:20（Asia/Taipei）執行，實際啟動時間可能依 GitHub 排程略有延遲。
-- 在 Actions → **Weekly BNI Taiwan refresh** → **Run workflow** 可立即手動更新。
-- 成功後更新 `data/members.csv`、`data/metadata.json`、`docs/members.js`，並重新發布 GitHub Pages。
-- 更新日期直接來自資料；摘要會列出新增、移除及資料變動筆數。
-- 若抓取或驗證失敗，不提交資料，也不取代目前網站。驗證包含空資料、會員總數下降超過 10%、區域／分會涵蓋下降超過 5%，及主要欄位完整率下降超過 10%。
-- `test_refresh.py` 驗證異常資料阻擋、CSV／網頁一致性與 HTML 字串跳脫。
-- 排程在 GitHub 雲端執行，不依賴本機電腦或這個聊天保持開啟。GitHub 對長期無活動的公開儲存庫可能暫停排程；狀態可在 Actions 查看。
+本機預覽：以 HTTP 伺服器提供 `docs/`。壓縮資料與 Web Worker 需要 HTTP／HTTPS；直接以 file:// 開啟不支援全球搜尋。
 
 ## Google 登入與收藏同步
 

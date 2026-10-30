@@ -142,7 +142,7 @@ def country_command(args):
         rows = asyncio.run(crawl(args.crawler_dir, args.country_id, args.concurrency))
         validate(rows, args.country_id)
         compressed(directory / 'members.json.gz', rows)
-        status = dict(country_id=args.country_id, status='success', records=len(rows), updated_at=now)
+        status = dict(country_id=args.country_id, status='success', records=len(rows), updated_at=datetime.now(timezone.utc).isoformat())
     except Exception as exc:
         logging.exception('Country %s failed; previous snapshot will be retained', args.country_id)
         status = dict(country_id=args.country_id, status='failed', error=f'{type(exc).__name__}: {exc}', updated_at=now)
