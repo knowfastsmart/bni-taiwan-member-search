@@ -29,8 +29,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m unittest -v test_refresh.py test_global.py
-      - run: node --test test_favorites.cjs
+      - run: env -u GITHUB_STEP_SUMMARY python -m unittest -v test_refresh.py test_global.py
+      - run: node --test test_favorites.cjs test_search_worker.cjs
       - name: Select all reviewed upstream country entries
         id: countries
         run: |
