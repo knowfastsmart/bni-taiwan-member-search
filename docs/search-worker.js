@@ -1,5 +1,5 @@
 'use strict';
-importScripts('catalog-io.js?v=20261030-global-2');
+importScripts('catalog-io.js?v=20261030-global-3');
 const charMap=Object.fromEntries('会會 计計 师師 网網 页頁 设設 内內 装裝 顾顧 问問 险險 产產 销銷 业業 电電 脑腦 软軟 开開 发發 务務 财財 税稅 帐帳 记記 账帳 医醫 疗療 养養 护護 营營 运運 输輸 动動 礼禮 摄攝 庆慶 宠寵 银銀 贷貸 资資 询詢 咨諮 厂廠 车車 广廣 络絡 专專 类類 联聯 线線 机機 统統 筑築 纸紙 划劃 经經 劳勞 农農 贸貿 购購 学學 习習 健健 材材 简簡 体體 别別 帮幫 找找'.split(' ').map(s=>Array.from(s)));
 const norm=v=>Array.from(String(v??'').normalize('NFKC').toLowerCase()).map(c=>charMap[c]||c).join('').replace(/台/g,'臺').replace(/[\s\p{P}\p{S}]+/gu,'');
 const collator=new Intl.Collator('zh-Hant',{numeric:true}),cache=new Map(),pending=new Map();
@@ -28,11 +28,11 @@ function matchesRow(c,r,s,groups,saved){
   if(s.savedOnly&&!saved.has(r[0]))return -1;
   if(s.region&&s.region!==c.id+':'+r[1])return -1;
   if(s.chapter&&s.chapter!==c.id+':'+r[1]+':'+r[2])return -1;
-  if(s.category&&r[5].split(' > ')[0]!==s.category)return -1;
-  if(s.mode==='profession'&&s.profession&&r[5].split(' > ').at(-1)!==s.profession)return -1;
+  if(s.category&&r[5].split(/\s*>\s*/).filter(Boolean)[0]!==s.category)return -1;
+  if(s.mode==='profession'&&s.profession&&r[5].split(/\s*>\s*/).filter(Boolean).at(-1)!==s.profession)return -1;
   if(s.contact==='phone'&&!r[7]&&!r[8]||s.contact==='line'&&!r[9]||s.contact==='website'&&!r[10])return -1;
   if(!groups.length)return 0;
-  const name=norm(r[3]),company=norm(r[4]),fullIndustry=norm(r[5]),industry=norm(r[5].split(' > ').slice(1).join(' ')||r[5]);
+  const name=norm(r[3]),company=norm(r[4]),fullIndustry=norm(r[5]),industry=norm(r[5].split(/\s*>\s*/).filter(Boolean).slice(1).join(' ')||r[5]);
   let score=0;
   for(const group of groups){let best=0;for(const alt of group.alts){const n=s.mode==='profession'?(industry.includes(alt)?16:0):(name.includes(alt)?20:industry.includes(alt)?16:company.includes(alt)?12:fullIndustry.includes(alt)?5:r[13].includes(alt)?3:0);if(n)best=Math.max(best,n+(alt===group.original?2:0));}if(!best)return -1;score+=best;}
   return score;
