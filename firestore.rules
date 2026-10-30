@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/favorites/{memberId} {
+      function owner() {
+        return request.auth != null && request.auth.uid == userId
+          && request.auth.token.firebase.sign_in_provider == 'google.com';
+      }
+      allow read: if owner();
+      allow create, update: if owner()
+        && memberId.matches('[A-Za-z0-9_-]{1,512}')
+        && request.resource.data.keys().hasOnly(['active', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['active', 'updatedAt'])
+        && request.resource.data.active is bool
+        && request.resource.data.updatedAt == request.time;
+      // Keep inactive tombstones so reconnecting devices do not resurrect deletions.
+      allow delete: if false;
+    }
+  }
+}

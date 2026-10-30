@@ -1,0 +1,266 @@
+[
+  {
+    "id": "2",
+    "name": "Costa Rica",
+    "label": "哥斯大黎加",
+    "expected_regions": 1
+  },
+  {
+    "id": "5",
+    "name": "Cyprus",
+    "label": "賽普勒斯",
+    "expected_regions": 5
+  },
+  {
+    "id": "10",
+    "name": "United States",
+    "label": "美國",
+    "expected_regions": 213
+  },
+  {
+    "id": "364",
+    "name": "Antarctica",
+    "label": "南極洲（來源標示）",
+    "expected_regions": 66
+  },
+  {
+    "id": "460",
+    "name": "Slovenia",
+    "label": "斯洛維尼亞",
+    "expected_regions": 1
+  },
+  {
+    "id": "464",
+    "name": "Barbados",
+    "label": "巴貝多",
+    "expected_regions": 1
+  },
+  {
+    "id": "470",
+    "name": "Suriname",
+    "label": "蘇利南",
+    "expected_regions": 1
+  },
+  {
+    "id": "1010",
+    "name": "South Africa",
+    "label": "南非",
+    "expected_regions": 21
+  },
+  {
+    "id": "1138",
+    "name": "United Arab Emirates",
+    "label": "阿拉伯聯合大公國",
+    "expected_regions": 9
+  },
+  {
+    "id": "1418",
+    "name": "Kenya",
+    "label": "肯亞",
+    "expected_regions": 3
+  },
+  {
+    "id": "1923",
+    "name": "Romania",
+    "label": "羅馬尼亞",
+    "expected_regions": 28
+  },
+  {
+    "id": "1924",
+    "name": "Malta",
+    "label": "馬爾他",
+    "expected_regions": 1
+  },
+  {
+    "id": "1925",
+    "name": "Zimbabwe",
+    "label": "辛巴威",
+    "expected_regions": 1
+  },
+  {
+    "id": "1926",
+    "name": "Nigeria",
+    "label": "奈及利亞",
+    "expected_regions": 9
+  },
+  {
+    "id": "2777",
+    "name": "Colombia",
+    "label": "哥倫比亞",
+    "expected_regions": 24
+  },
+  {
+    "id": "3278",
+    "name": "Malaysia",
+    "label": "馬來西亞",
+    "expected_regions": 25
+  },
+  {
+    "id": "3376",
+    "name": "Denmark",
+    "label": "丹麥",
+    "expected_regions": 9
+  },
+  {
+    "id": "3435",
+    "name": "Finland",
+    "label": "芬蘭",
+    "expected_regions": 10
+  },
+  {
+    "id": "3445",
+    "name": "Norway",
+    "label": "挪威",
+    "expected_regions": 9
+  },
+  {
+    "id": "3488",
+    "name": "Poland",
+    "label": "波蘭",
+    "expected_regions": 32
+  },
+  {
+    "id": "3521",
+    "name": "Mexico",
+    "label": "墨西哥",
+    "expected_regions": 72
+  },
+  {
+    "id": "3542",
+    "name": "Brazil",
+    "label": "巴西",
+    "expected_regions": 90
+  },
+  {
+    "id": "3548",
+    "name": "Switzerland",
+    "label": "瑞士",
+    "expected_regions": 9
+  },
+  {
+    "id": "3622",
+    "name": "Spain",
+    "label": "西班牙",
+    "expected_regions": 41
+  },
+  {
+    "id": "3650",
+    "name": "Belgium (French)",
+    "label": "比利時（法語區）",
+    "expected_regions": 6
+  },
+  {
+    "id": "3655",
+    "name": "France",
+    "label": "法國",
+    "expected_regions": 70
+  },
+  {
+    "id": "3800",
+    "name": "Portugal",
+    "label": "葡萄牙",
+    "expected_regions": 15
+  },
+  {
+    "id": "3857",
+    "name": "India",
+    "label": "印度",
+    "expected_regions": 174
+  },
+  {
+    "id": "3908",
+    "name": "Italy",
+    "label": "義大利",
+    "expected_regions": 54
+  },
+  {
+    "id": "3979",
+    "name": "Thailand",
+    "label": "泰國",
+    "expected_regions": 18
+  },
+  {
+    "id": "5723",
+    "name": "Austria",
+    "label": "奧地利",
+    "expected_regions": 7
+  },
+  {
+    "id": "5768",
+    "name": "Germany",
+    "label": "德國",
+    "expected_regions": 60
+  },
+  {
+    "id": "6117",
+    "name": "Sweden",
+    "label": "瑞典",
+    "expected_regions": 31
+  },
+  {
+    "id": "7585",
+    "name": "Singapore",
+    "label": "新加坡",
+    "expected_regions": 6
+  },
+  {
+    "id": "7638",
+    "name": "Japan",
+    "label": "日本",
+    "expected_regions": 69
+  },
+  {
+    "id": "7699",
+    "name": "Taiwan",
+    "label": "台灣",
+    "expected_regions": 31
+  },
+  {
+    "id": "7732",
+    "name": "Vietnam",
+    "label": "越南",
+    "expected_regions": 24
+  },
+  {
+    "id": "7744",
+    "name": "South Korea",
+    "label": "南韓",
+    "expected_regions": 25
+  },
+  {
+    "id": "7751",
+    "name": "Hong Kong",
+    "label": "香港",
+    "expected_regions": 2
+  },
+  {
+    "id": "7872",
+    "name": "Ireland",
+    "label": "愛爾蘭",
+    "expected_regions": 8
+  },
+  {
+    "id": "7984",
+    "name": "Netherlands",
+    "label": "荷蘭",
+    "expected_regions": 21
+  },
+  {
+    "id": "8150",
+    "name": "United Kingdom",
+    "label": "英國",
+    "expected_regions": 79
+  },
+  {
+    "id": "9517",
+    "name": "Tanzania",
+    "label": "坦尚尼亞",
+    "expected_regions": 1
+  },
+  {
+    "id": "9742",
+    "name": "Macau",
+    "label": "澳門",
+    "expected_regions": 1
+  }
+]
