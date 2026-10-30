@@ -12,7 +12,7 @@ const index=data.map((r,id)=>{const professional=(r.industry||'').split(' > ').s
 let saved=new Set();try{const ids=JSON.parse(localStorage.getItem('bni-saved-v1')||'[]');if(Array.isArray(ids))saved=new Set(ids.filter(x=>typeof x==='string'));}catch{}
 const modeQueries={all:'',profession:''};
 let state={mode:'all',profession:'',query:'',region:'',chapter:'',category:'',contact:'',sort:'relevance',page:1,view:'grid',savedOnly:false}, filtered=[],timer,returnFocus;
-const pageSize=24, nf=new Intl.NumberFormat('zh-TW'),collator=new Intl.Collator('zh-Hant',{numeric:true});
+const pageSize=500, nf=new Intl.NumberFormat('zh-TW'),collator=new Intl.Collator('zh-Hant',{numeric:true});
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(timer);timer=setTimeout(()=>$('toast').classList.remove('show'),2400);}
 function options(id,values,first){$(id).innerHTML=`<option value="">${first}</option>`+[...new Set(values)].filter(Boolean).sort(collator.compare).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');}
 function chapters(){const old=state.chapter;options('chapter',data.filter(r=>!state.region||r.region_name===state.region).map(r=>r.chapter_name),'全部分會');if([...$('chapter').options].some(o=>o.value===old))$('chapter').value=old;else state.chapter='';}
