@@ -9,7 +9,7 @@
 
 ## 收錄範圍及資料更新
 
-來源：[gaskhuang/bni-crawler](https://github.com/gaskhuang/bni-crawler)，固定已檢查版本 `cc7c982457a1bf8406aeeb8b982df49c6224045b`。範圍是該 repo 列出的 44 個國家／地區入口，不宣稱涵蓋未公開資料或 repo 尚未支援的地區。`countries.json` 保留來源名稱並提供繁體中文顯示名稱；來源的 Antarctica 入口另標「來源標示」，避免自行變更來源國家名稱。
+來源：[gaskhuang/bni-crawler](https://github.com/gaskhuang/bni-crawler)，固定已檢查版本 `cc7c982457a1bf8406aeeb8b982df49c6224045b`。範圍是該 repo 列出的 44 個國家／地區入口，不宣稱涵蓋未公開資料或 repo 尚未支援的地區。`countries.json` 保留來源名稱並提供繁體中文顯示名稱；Antarctica 入口的區域實際包含 BNI QA Team 等測試資料，保留其原始檔，但不列入網站正式搜尋與會員總數。目錄原始記錄總數包含這些來源資料，網站顯示數則已排除。
 
 - 預定每週一台灣時間 06:20 由 GitHub Actions 更新全部 44 個入口，實際啟動可能略有延遲；電腦與聊天不需保持開啟。
 - [Actions → Weekly BNI global refresh → Run workflow](https://github.com/knowfastsmart/bni-taiwan-member-search/actions/workflows/weekly-refresh.yml) 可立即更新。

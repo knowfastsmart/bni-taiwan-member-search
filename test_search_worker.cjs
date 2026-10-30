@@ -6,7 +6,7 @@ const FIELDS=['country_id','country_name','region_id','region_name','chapter_id'
 const base={country:'',mode:'all',profession:'',query:'',region:'',chapter:'',category:'',contact:'',sort:'relevance',page:1,savedOnly:false};
 async function harness(){
   const messages=[],assets={},countries=[];
-  for(const [cid,label,count]of [['10','美國',600],['7638','日本',300]]){
+  for(const [cid,label,count]of [['10','美國',600],['7638','日本',300],['364','來源測試入口',4]]){
     const rows=[],profiles=[];
     for(let i=0;i<count;i++){
       const key=cid+'Member'+i,url='https://bni.com.tw/zh-TW/memberdetails?encryptedMemberId='+key;
