@@ -3,16 +3,17 @@ const $=id=>document.getElementById(id);
 const store=window.BNI_FAVORITES_STORE;
 let auth,db,authAPI,fireAPI,user=null,unsubscribe=null,busy=false,actionError='';
 const config=window.BNI_FIREBASE_CONFIG;
+const browserLogin=window.BNIBrowserLogin;
 const message=$('accountMessage'),login=$('googleLogin'),logout=$('googleLogout'),importButton=$('importFavorites'),retry=$('retrySync');
 function ui(s=store.snapshot()){
   $('accountName').textContent=user?(user.displayName||'Google 帳號'):'讓收藏跟著你';
   $('accountEmail').textContent=user?(user.email||'已登入 Google'):'使用 Google 帳號同步收藏';
-  login.hidden=!!user;logout.hidden=!user;login.disabled=busy||!auth;logout.disabled=busy;
+  login.hidden=!!user;logout.hidden=!user;login.disabled=busy||(!auth&&!browserLogin?.isLine);logout.disabled=busy;$('loginBrowserHelp').hidden=!!user;$('inAppLoginNote').hidden=!!user||!browserLogin?.isLine;login.querySelector('span').textContent=browserLogin?.isLine?'在瀏覽器開啟登入':'使用 Google 帳號登入';
   importButton.hidden=!user||!s.ready||!s.importable;importButton.disabled=busy;
   importButton.textContent=`匯入此裝置的 ${s.importable} 筆收藏`;
   retry.hidden=!user;retry.disabled=busy;retry.textContent=s.error?'重試同步':'重新讀取雲端收藏';
   if(user){message.textContent=s.error||(!s.ready?'正在讀取你的雲端收藏…':s.pending?`有 ${s.pending} 筆收藏待同步${s.offline?'，連線後會繼續':'…'}`:s.offline?'目前離線，已顯示此連線的收藏快取。':s.saved.size?`收藏已同步，雲端共 ${s.saved.size} 筆。`:'已連接雲端，目前沒有收藏。');if(s.ready&&s.importable)message.textContent+=` 此裝置另有 ${s.importable} 筆收藏尚未匯入。`; }
-  else if(auth)message.textContent='未登入時，收藏只儲存在這台裝置。';
+  else if(browserLogin?.isLine)message.textContent='請在 Safari 或 Chrome 登入，讀取你的雲端收藏。';else if(auth)message.textContent='未登入時，收藏只儲存在這台裝置。';
   if(busy)message.textContent=user?'正在處理帳號…':'正在開啟 Google 登入視窗…';
   if(actionError)message.textContent=actionError;
   if(s.storageError)message.textContent+=' 此瀏覽器限制本機儲存，請保持連線完成同步。';
@@ -25,7 +26,7 @@ function watch(){
   unsubscribe=fireAPI.onSnapshot(fireAPI.collection(db,'users',current.uid,'favorites'),{includeMetadataChanges:true},snapshot=>store.receive(version,snapshot.docs.map(d=>({id:d.id,active:d.data().active===true})),snapshot.metadata.fromCache),()=>store.fail(version,'無法讀取雲端收藏，請檢查網路或聯絡網站管理者。'));
 }
 store.subscribe(ui);
-login.onclick=async()=>{if(!auth||busy)return;busy=true;actionError='';let timeout;ui();try{const provider=new authAPI.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});await Promise.race([authAPI.signInWithPopup(auth,provider),new Promise((resolve,reject)=>{timeout=setTimeout(()=>reject({code:'auth/popup-timeout'}),60000);})]);}catch(error){actionError=errorMessage(error);}finally{clearTimeout(timeout);busy=false;ui();}};
+login.onclick=async()=>{if(browserLogin?.isLine){browserLogin.show();return;}if(!auth||busy)return;busy=true;actionError='';let timeout;ui();try{const provider=new authAPI.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});await Promise.race([authAPI.signInWithPopup(auth,provider),new Promise((resolve,reject)=>{timeout=setTimeout(()=>reject({code:'auth/popup-timeout'}),60000);})]);}catch(error){actionError=errorMessage(error);}finally{clearTimeout(timeout);busy=false;ui();}};
 logout.onclick=async()=>{if(busy)return;busy=true;actionError='';ui();try{await authAPI.signOut(auth);}catch{actionError='登出失敗，請檢查網路後重試。';}finally{busy=false;ui();}};
 importButton.onclick=()=>{store.importGuest();};
 retry.onclick=()=>watch();
