@@ -10,7 +10,7 @@ async function harness(){
     const rows=[],profiles=[];
     for(let i=0;i<count;i++){
       const key=cid+'Member'+i,url='https://bni.com.tw/zh-TW/memberdetails?encryptedMemberId='+key;
-      const row={country_id:cid,country_name:label,region_id:'r',region_name:'Region',chapter_id:'c',chapter_name:'Chapter',member_name:key,company:i===0?'+Company':'Company',industry:'Professional > Accounting > Accountant',city:'City',phone:'123',mobile:'',line_url:'',website:'',business_desc:i===0?'secretword only in full profile':'',detail_url:url};
+      const row={country_id:cid,country_name:label,region_id:'r',region_name:'Region',chapter_id:'c',chapter_name:'Chapter',member_name:key,company:i===0?'+Company':'Company',industry:i===0?'Professional > Accounting > Accountant >':'Professional > Accounting > Accountant',city:'City',phone:'123',mobile:'',line_url:'',website:'',business_desc:i===0?'secretword only in full profile':'',detail_url:url};
       const text=Object.values(row).join('').toLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
       rows.push([key,'r','c',key,row.company,row.industry,'City','123','','','','',url,text,0,i]);profiles.push(FIELDS.map(k=>row[k]||''));
     }
@@ -26,6 +26,7 @@ test('global pagination is 500 and country/region IDs are isolated',async()=>{
   const h=await harness();let out=await h.send({type:'search',id:1,state:base,groups:[],saved:[]});let result=out.find(m=>m.type==='results');assert.equal(result.total,900);assert.equal(result.rows.length,500);
   out=await h.send({type:'search',id:2,state:{...base,country:'10',page:2},groups:[],saved:[]});result=out.find(m=>m.type==='results');assert.equal(result.total,600);assert.equal(result.rows.length,100);assert.ok(result.rows.every(r=>r.country_id==='10'));
   out=await h.send({type:'search',id:3,state:{...base,region:'7638:r'},groups:[],saved:[]});result=out.find(m=>m.type==='results');assert.equal(result.total,300);assert.ok(result.rows.every(r=>r.country_id==='7638'));
+  out=await h.send({type:'search',id:4,state:{...base,mode:'profession',profession:'Accountant'},groups:[],saved:[]});assert.equal(out.find(m=>m.type==='results').total,900);
 });
 test('all-fields search includes full descriptions; profession search remains separate',async()=>{
   const h=await harness(),groups=[{original:'secretword',alts:['secretword']}];

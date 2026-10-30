@@ -32,10 +32,14 @@ class GlobalTests(unittest.TestCase):
 
     def test_indexes_preserve_searchable_full_fields_and_exact_profile_chunks(self):
         rows = [member(i) for i in range(1001)]
+        rows[1000]['industry'] = 'Creative > Photographer >'
+        rows[999]['industry'] = ' > '
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             meta = build_country(root, dict(id='10', name='United States', label='美國'), rows, '2026-10-30T12:00:00+00:00')
             self.assertEqual(len(meta['chunks']), 2)
+            self.assertIn('Photographer', meta['professions'])
+            self.assertNotIn('Photographer >', meta['professions'])
             index = json.loads(gzip.decompress((root / 'docs' / meta['index']).read_bytes()))
             self.assertIn(normalize('法律服務'), index[1000][13])
             self.assertEqual(index[1000][14:], [1, 0])

@@ -9,6 +9,7 @@ import json
 import logging
 import math
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -150,6 +151,10 @@ def country_command(args):
     print(json.dumps(status, ensure_ascii=False))
 
 
+def industry_parts(value):
+    return [part.strip() for part in re.split(r'\s*>\s*', value) if part.strip()]
+
+
 def build_country(root, country, rows, updated_at):
     cid = country['id']
     folder = root / 'docs/catalog' / cid
@@ -175,8 +180,8 @@ def build_country(root, country, rows, updated_at):
                 index='catalog/' + cid + '/' + name, chunks=chunks,
                 regions=[dict(id=k, name=v) for k, v in regions.items()],
                 chapters=[dict(region_id=k[0], id=k[1], name=v) for k, v in chapters.items()],
-                categories=sorted({r['industry'].split(' > ')[0] for r in rows if r['industry']}),
-                professions=sorted({r['industry'].split(' > ')[-1] for r in rows if r['industry']}))
+                categories=sorted({parts[0] for r in rows for parts in [industry_parts(r['industry'])] if parts}),
+                professions=sorted({parts[-1] for r in rows for parts in [industry_parts(r['industry'])] if parts}))
     dump(stage / 'meta.json', meta)
     shutil.rmtree(folder, ignore_errors=True)
     stage.replace(folder)
