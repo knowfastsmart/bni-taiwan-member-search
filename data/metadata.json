@@ -1,6 +1,7 @@
 {
-  "source": "bni_members_taiwan_20261030_103148.csv",
+  "source": "https://github.com/gaskhuang/bni-crawler",
   "snapshot_date": "2026-10-30",
+  "updated_at": "2026-10-30T11:28:21.090018+00:00",
   "records": 9426,
   "fields": [
     "country_id",
@@ -29,5 +30,11 @@
     "detail_url"
   ],
   "regions": 25,
-  "chapters": 246
+  "chapters": 246,
+  "changes": {
+    "added": 0,
+    "removed": 0,
+    "updated": 2
+  },
+  "crawler_commit": "cc7c982457a1bf8406aeeb8b982df49c6224045b"
 }
