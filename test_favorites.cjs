@@ -35,3 +35,29 @@ test('guest import is explicit and a failed write remains available for retry',a
   fail=false;store.retry();await tick();assert.equal(store.pending.size,0);assert.equal(store.saved.has('Guest'),true);
   store.connect(null);assert.deepEqual([...store.saved],['Guest']);
 });
+
+// Exercise the actual page subscription without a browser or Firebase connection.
+function pageFavorites(savedOnly=false){
+  const vm=require('node:vm'),fs=require('node:fs'),calls=[];let receive;
+  const context=vm.createContext({favoriteStore:{uid:null,subscribe(fn){receive=fn;fn({uid:null,ready:true,error:'',saved:new Set()});}},state:{savedOnly},saved:new Set(),data:[{member_name:'Member'}],filtered:[{id:0}],totalResults:1,$:()=>({textContent:''}),refreshSaveButtons:()=>{},render:()=>calls.push('render'),apply:(...args)=>calls.push(args)});
+  const source=fs.readFileSync('docs/app.js','utf8');vm.runInContext(source.slice(source.indexOf('let favoritesUIReady=false')),context);
+  calls.length=0;return {context,calls,receive:(saved,extra={})=>receive({uid:null,ready:true,error:'',saved:new Set(saved),...extra})};
+}
+test('heart changes and sync acknowledgements do not restart the public member search',()=>{
+  const page=pageFavorites();page.receive(['Member']);page.receive(['Member']);page.receive([]);
+  assert.deepEqual(page.calls,[]);assert.equal(page.context.saved.size,0);
+});
+test('saved-list changes refresh quietly but switching accounts clears private results',()=>{
+  const page=pageFavorites(true);page.receive(['Member']);assert.deepEqual(page.calls,[[false,true]]);
+  page.calls.length=0;page.receive(['Other'],{uid:'another-account',ready:false});
+  assert.deepEqual(page.calls,['render',[false,false]]);assert.equal(page.context.data.length,0);assert.equal(page.context.totalResults,0);
+});
+test('heart painting updates only changed buttons and keeps the existing card elements',()=>{
+  const vm=require('node:vm'),fs=require('node:fs');let changes=0;
+  const button=(id)=>({dataset:{save:String(id)},pressed:'false',classList:{toggle(){}},getAttribute(){return this.pressed;},setAttribute(k,v){changes++;if(k==='aria-pressed')this.pressed=v;this[k]=v;}});
+  const first=button(0),second=button(1),buttons=[first,second],source=fs.readFileSync('docs/app.js','utf8');
+  const context=vm.createContext({document:{querySelectorAll:()=>buttons},data:[{detail_url:'Member',member_name:'會員一'},{detail_url:'Other',member_name:'會員二'}],saved:new Set(['Member']),memberKey:v=>v});
+  vm.runInContext(source.slice(source.indexOf('function refreshSaveButtons()'),source.indexOf('function card(id)')),context);
+  context.refreshSaveButtons();assert.equal(first.pressed,'true');assert.equal(first.textContent,'♥');assert.equal(first['aria-label'],'取消收藏 會員一');assert.equal(second.pressed,'false');assert.equal(changes,2);
+  context.refreshSaveButtons();assert.equal(changes,2);assert.equal(buttons[0],first);
+});
