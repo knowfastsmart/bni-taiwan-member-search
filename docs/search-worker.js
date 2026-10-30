@@ -1,5 +1,5 @@
 'use strict';
-importScripts('catalog-io.js');
+importScripts('catalog-io.js?v=20261030-global-2');
 const charMap=Object.fromEntries('会會 计計 师師 网網 页頁 设設 内內 装裝 顾顧 问問 险險 产產 销銷 业業 电電 脑腦 软軟 开開 发發 务務 财財 税稅 帐帳 记記 账帳 医醫 疗療 养養 护護 营營 运運 输輸 动動 礼禮 摄攝 庆慶 宠寵 银銀 贷貸 资資 询詢 咨諮 厂廠 车車 广廣 络絡 专專 类類 联聯 线線 机機 统統 筑築 纸紙 划劃 经經 劳勞 农農 贸貿 购購 学學 习習 健健 材材 简簡 体體 别別 帮幫 找找'.split(' ').map(s=>Array.from(s)));
 const norm=v=>Array.from(String(v??'').normalize('NFKC').toLowerCase()).map(c=>charMap[c]||c).join('').replace(/台/g,'臺').replace(/[\s\p{P}\p{S}]+/gu,'');
 const collator=new Intl.Collator('zh-Hant',{numeric:true}),cache=new Map(),pending=new Map();
