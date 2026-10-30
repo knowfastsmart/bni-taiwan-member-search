@@ -10,8 +10,8 @@ function ui(s=store.snapshot()){
   login.hidden=!!user;logout.hidden=!user;login.disabled=busy||!auth;logout.disabled=busy;
   importButton.hidden=!user||!s.ready||!s.importable;importButton.disabled=busy;
   importButton.textContent=`匯入此裝置的 ${s.importable} 筆收藏`;
-  retry.hidden=!user||!s.error;retry.disabled=busy;
-  if(user){message.textContent=s.error||(!s.ready?'正在讀取你的雲端收藏…':s.pending?`有 ${s.pending} 筆收藏待同步${s.offline?'，連線後會繼續':'…'}`:s.offline?'目前離線，已顯示此連線的收藏快取。':'收藏已同步，可在其他裝置登入查看。');}
+  retry.hidden=!user;retry.disabled=busy;retry.textContent=s.error?'重試同步':'重新讀取雲端收藏';
+  if(user){message.textContent=s.error||(!s.ready?'正在讀取你的雲端收藏…':s.pending?`有 ${s.pending} 筆收藏待同步${s.offline?'，連線後會繼續':'…'}`:s.offline?'目前離線，已顯示此連線的收藏快取。':s.saved.size?`收藏已同步，雲端共 ${s.saved.size} 筆。`:'已連接雲端，目前沒有收藏。');if(s.ready&&s.importable)message.textContent+=` 此裝置另有 ${s.importable} 筆收藏尚未匯入。`; }
   else if(auth)message.textContent='未登入時，收藏只儲存在這台裝置。';
   if(busy)message.textContent=user?'正在處理帳號…':'正在開啟 Google 登入視窗…';
   if(actionError)message.textContent=actionError;
