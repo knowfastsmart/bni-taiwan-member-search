@@ -1,5 +1,5 @@
 'use strict';
-importScripts('catalog-io.js?v=20261030-global-5');
+importScripts('catalog-io.js?v=20261030-global-6');
 const charMap=Object.fromEntries('会會 计計 师師 网網 页頁 设設 内內 装裝 顾顧 问問 险險 产產 销銷 业業 电電 脑腦 软軟 开開 发發 务務 财財 税稅 帐帳 记記 账帳 医醫 疗療 养養 护護 营營 运運 输輸 动動 礼禮 摄攝 庆慶 宠寵 银銀 贷貸 资資 询詢 咨諮 厂廠 车車 广廣 络絡 专專 类類 联聯 线線 机機 统統 筑築 纸紙 划劃 经經 劳勞 农農 贸貿 购購 学學 习習 健健 材材 简簡 体體 别別 帮幫 找找'.split(' ').map(s=>Array.from(s)));
 const norm=v=>Array.from(String(v??'').normalize('NFKC').toLowerCase()).map(c=>charMap[c]||c).join('').replace(/台/g,'臺').replace(/[\s\p{P}\p{S}]+/gu,'');
 const collator=new Intl.Collator('zh-Hant',{numeric:true}),cache=new Map(),pending=new Map();
@@ -46,15 +46,15 @@ async function search(message){
     for(const c of countries){if(skip>=c.records){skip-=c.records;continue;}const size=Math.min(c.records-skip,remaining);for(let i=skip;i<skip+size;i++)matches.push({cid:c.id,idx:i});remaining-=size;skip=0;if(!remaining)break;}
     selection={all:true,countries};
   }else{
-    let done=0;
+    let done=0;const foundSaved=new Set();
     // Sequential country processing bounds peak memory; immutable shards are cached on disk.
-    for(const c of countries){
+    for(const c of (state.savedOnly&&!saved.size?[]:countries)){
       const rows=await getIndex(c);if(id!==latest)return;
       for(let i=0;i<rows.length;i++){
-        const r=rows[i],score=matchesRow(c,r,state,groups,saved);if(score>=0)matches.push({cid:c.id,idx:i,score,name:r[3],company:r[4]});
+        const r=rows[i],score=matchesRow(c,r,state,groups,saved);if(score>=0){matches.push({cid:c.id,idx:i,score,name:r[3],company:r[4]});if(state.savedOnly)foundSaved.add(r[0]);}
         if(i%2000===1999){await pause();if(id!==latest)return;}
       }
-      done++;postMessage({type:'progress',id,done,total:countries.length,country:c.label});await pause();if(id!==latest)return;
+      done++;postMessage({type:'progress',id,done,total:countries.length,country:c.label});if(state.savedOnly&&foundSaved.size===saved.size)break;await pause();if(id!==latest)return;
     }
     if(state.sort==='name')matches.sort((a,b)=>collator.compare(a.name,b.name));else if(state.sort==='company')matches.sort((a,b)=>collator.compare(a.company,b.company));else matches.sort((a,b)=>b.score-a.score);
     total=matches.length;selection={all:false,matches};const page=Math.min(Math.max(1,state.page),Math.max(1,Math.ceil(total/pageSize)));matches=matches.slice((page-1)*pageSize,page*pageSize);
