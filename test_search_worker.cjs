@@ -17,7 +17,7 @@ async function harness(){
     assets[cid+'index']=rows;assets[cid+'profiles']=profiles;
     countries.push({id:cid,name:label,label,records:count,index:cid+'index',chunks:[cid+'profiles'],regions:[{id:'r',name:'Region'}],chapters:[{id:'c',region_id:'r',name:'Chapter'}]});
   }
-  const context=vm.createContext({importScripts(){},BNICatalogIO:{readGzip:async path=>{reads.push(path);return assets[path];}},fetch:async()=>({ok:true,json:async()=>({countries,fields:FIELDS})}),postMessage:m=>messages.push(m),setTimeout,Blob,console});context.self=context;
+  const context=vm.createContext({importScripts(){},BNICatalogIO:{readGzip:async path=>{reads.push(path);return assets[path];}},fetch:async()=>({ok:true,json:async()=>({countries,fields:FIELDS})}),postMessage:m=>messages.push(m),setTimeout,clearTimeout,AbortController,Blob,console});context.self=context;
   vm.runInContext(fs.readFileSync('docs/search-worker.js','utf8'),context);
   await context.onmessage({data:{type:'init'}});
   return {messages,reads,countries,send:async data=>{messages.length=0;await context.onmessage({data});return messages;}};
@@ -46,4 +46,15 @@ test('empty favorites skip downloads and found favorites return before unrelated
   const first=h.countries.filter(c=>c.id!=='364').sort((a,b)=>new Intl.Collator('zh-Hant',{numeric:true}).compare(a.label,b.label))[0];
   out=await h.send({type:'search',id:2,state:{...base,savedOnly:true},groups:[],saved:[first.id+'Member0']});
   assert.equal(out.find(m=>m.type==='results').total,1);assert.deepEqual(h.reads,[first.index]);
+});
+
+test('a blocked Safari cache write does not delay public member data',async()=>{
+  const context=vm.createContext({location:{href:'https://example.test/'},caches:{open:async()=>({match:async()=>null,put:()=>new Promise(()=>{})})},fetch:async()=>new Response(JSON.stringify([['Member']])),Response,Blob,TextDecoder,Uint8Array,URL,AbortController,setTimeout,clearTimeout});context.self=context;
+  vm.runInContext(fs.readFileSync('docs/catalog-io.js','utf8'),context);
+  let timeout;try{const rows=await Promise.race([context.BNICatalogIO.readGzip('members.json.gz'),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('cache blocked results')),500);})]);assert.equal(rows[0][0],'Member');}finally{clearTimeout(timeout);}
+});
+test('a stalled network request ends with a recoverable timeout instead of loading forever',async()=>{
+  const context=vm.createContext({location:{href:'https://example.test/'},fetch:async(_url,{signal})=>new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(Error('aborted')))),Response,Blob,TextDecoder,Uint8Array,URL,AbortController,setTimeout:(fn,ms)=>setTimeout(fn,Math.min(ms,10)),clearTimeout});context.self=context;
+  vm.runInContext(fs.readFileSync('docs/catalog-io.js','utf8'),context);
+  await assert.rejects(context.BNICatalogIO.readGzip('members.json.gz'),/載入逾時/);
 });
