@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const FIELDS=['country_id','country_name','region_id','region_name','chapter_id','chapter_name','member_name','title','company','industry','city','phone','mobile','address','postal_code','website','business_desc','ideal_referral','best_product','top_problem_solved','ideal_referral_partner','favorite_story','line_url','detail_url'];
 const base={country:'',mode:'all',profession:'',query:'',region:'',chapter:'',category:'',contact:'',sort:'relevance',page:1,savedOnly:false};
 async function harness(){
-  const messages=[],assets={},countries=[];
+  const messages=[],assets={},countries=[],reads=[];
   for(const [cid,label,count]of [['10','美國',600],['7638','日本',300],['364','來源測試入口',4]]){
     const rows=[],profiles=[];
     for(let i=0;i<count;i++){
@@ -17,10 +17,10 @@ async function harness(){
     assets[cid+'index']=rows;assets[cid+'profiles']=profiles;
     countries.push({id:cid,name:label,label,records:count,index:cid+'index',chunks:[cid+'profiles'],regions:[{id:'r',name:'Region'}],chapters:[{id:'c',region_id:'r',name:'Chapter'}]});
   }
-  const context=vm.createContext({importScripts(){},BNICatalogIO:{readGzip:async path=>assets[path]},fetch:async()=>({ok:true,json:async()=>({countries,fields:FIELDS})}),postMessage:m=>messages.push(m),setTimeout,Blob,console});context.self=context;
+  const context=vm.createContext({importScripts(){},BNICatalogIO:{readGzip:async path=>{reads.push(path);return assets[path];}},fetch:async()=>({ok:true,json:async()=>({countries,fields:FIELDS})}),postMessage:m=>messages.push(m),setTimeout,Blob,console});context.self=context;
   vm.runInContext(fs.readFileSync('docs/search-worker.js','utf8'),context);
   await context.onmessage({data:{type:'init'}});
-  return {messages,send:async data=>{messages.length=0;await context.onmessage({data});return messages;}};
+  return {messages,reads,countries,send:async data=>{messages.length=0;await context.onmessage({data});return messages;}};
 }
 test('global pagination is 500 and country/region IDs are isolated',async()=>{
   const h=await harness();let out=await h.send({type:'search',id:1,state:base,groups:[],saved:[]});let result=out.find(m=>m.type==='results');assert.equal(result.total,900);assert.equal(result.rows.length,500);
@@ -37,4 +37,13 @@ test('saved results work across countries and exports contain original full fiel
   const h=await harness();await h.send({type:'search',id:1,state:{...base,savedOnly:true},groups:[],saved:['7638Member0']});
   const out=await h.send({type:'export',id:'export',searchId:1}),result=out.find(m=>m.type==='exported');assert.equal(result.count,1);
   const text=await result.blob.text();assert.ok(text.includes('7638Member0'));assert.ok(text.includes('secretword only in full profile'));assert.ok(text.includes("' +Company".replace(' ','')));assert.ok(!text.includes('10Member0'));
+});
+
+test('empty favorites skip downloads and found favorites return before unrelated countries load',async()=>{
+  const h=await harness();
+  let out=await h.send({type:'search',id:1,state:{...base,savedOnly:true},groups:[],saved:[]});
+  assert.equal(out.find(m=>m.type==='results').total,0);assert.deepEqual(h.reads,[]);
+  const first=h.countries.filter(c=>c.id!=='364').sort((a,b)=>new Intl.Collator('zh-Hant',{numeric:true}).compare(a.label,b.label))[0];
+  out=await h.send({type:'search',id:2,state:{...base,savedOnly:true},groups:[],saved:[first.id+'Member0']});
+  assert.equal(out.find(m=>m.type==='results').total,1);assert.deepEqual(h.reads,[first.index]);
 });
