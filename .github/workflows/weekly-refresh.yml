@@ -1,4 +1,4 @@
-name: Weekly BNI Taiwan refresh
+name: Weekly BNI global refresh
 
 on:
   schedule:
@@ -15,20 +15,45 @@ permissions:
   contents: read
 
 concurrency:
-  group: bni-refresh-and-pages
+  group: bni-${{ github.event_name == 'push' && 'pages' || 'global-refresh' }}
   cancel-in-progress: false
 
 jobs:
-  refresh:
+  discover:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    permissions:
-      contents: write
+    outputs:
+      matrix: ${{ steps.countries.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-      - name: Check out reviewed upstream crawler
-        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest -v test_refresh.py test_global.py
+      - run: node --test test_favorites.cjs
+      - name: Select all reviewed upstream country entries
+        id: countries
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          countries = json.load(open('countries.json'))
+          countries.sort(key=lambda c: -c['expected_regions'])
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('matrix=' + json.dumps({'country': [c['id'] for c in countries]}) + '\n')
+          PYCODE
+
+  crawl:
+    needs: discover
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: gaskhuang/bni-crawler
           ref: cc7c982457a1bf8406aeeb8b982df49c6224045b
@@ -40,24 +65,55 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-refresh.txt
       - run: python -m pip install -r requirements-refresh.txt
-      - run: python -m unittest -v test_refresh.py
-      - name: Fetch Taiwan members and validate snapshot
-        run: python refresh_members.py --crawler-dir upstream-crawler --concurrency 8
-      - name: Commit validated database and website data
+      - name: Fetch and validate country public member details
+        run: python global_pipeline.py country --crawler-dir upstream-crawler --country-id '${{ matrix.country }}' --concurrency 8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: country-${{ matrix.country }}
+          path: result/
+          retention-days: 3
+          if-no-files-found: error
+
+  publish:
+    needs: [discover, crawl]
+    if: always() && github.event_name != 'push' && (needs.crawl.result == 'success' || needs.crawl.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: country-*
+          path: incoming
+          merge-multiple: true
+      - name: Build compressed search indexes and preserve failed country snapshots
+        run: python global_pipeline.py publish --results incoming
+      - name: Commit validated global catalog
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/members.csv data/metadata.json docs/members.js
+          git add docs/catalog docs/catalog.json data/countries data/global-metadata.json data/members.csv data/metadata.json docs/members.js
           if ! git diff --cached --quiet; then
-            git commit -m "Refresh Taiwan BNI members $(date -u +%Y-%m-%d)"
+            git commit -m "Refresh global BNI catalog $(date -u +%Y-%m-%d)"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
 
   deploy:
-    needs: refresh
-    if: always() && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped')
+    needs: [discover, crawl, publish]
+    if: always() && (github.event_name == 'push' || needs.publish.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: bni-pages-deploy
+      cancel-in-progress: false
     permissions:
       contents: read
       pages: write
@@ -69,6 +125,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+      - name: Prepare initial country catalog when needed
+        run: |
+          if [ ! -f docs/catalog.json ]; then
+            python global_pipeline.py publish --results incoming-empty
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
