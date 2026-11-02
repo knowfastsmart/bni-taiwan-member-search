@@ -1,8 +1,8 @@
 {
   "source": "https://github.com/gaskhuang/bni-crawler",
-  "snapshot_date": "2026-10-30",
-  "updated_at": "2026-10-30T13:10:08.516008+00:00",
-  "records": 9426,
+  "snapshot_date": "2026-11-02",
+  "updated_at": "2026-11-02T02:56:50.630571+00:00",
+  "records": 9427,
   "fields": [
     "country_id",
     "country_name",
@@ -32,9 +32,9 @@
   "regions": 25,
   "chapters": 246,
   "changes": {
-    "added": 0,
+    "added": 1,
     "removed": 0,
-    "updated": 2
+    "updated": 39
   },
   "crawler_commit": "cc7c982457a1bf8406aeeb8b982df49c6224045b"
 }
